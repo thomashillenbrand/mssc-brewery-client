@@ -5,6 +5,8 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultConnectionKeepAliveStrategy;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.web.client.RestTemplateCustomizer;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
@@ -15,17 +17,33 @@ import org.springframework.web.client.RestTemplate;
  * Created by jt on 2019-08-08.
  */
 @Component
+//@ConfigurationProperties(prefix = "blocking.rest.templ.customizer", ignoreUnknownFields = false)
 public class BlockingRestTemplateCustomizer implements RestTemplateCustomizer {
+
+    private final int maxConn;
+    private final int defMaxPerRoute;
+    private final int connTimeOut;
+    private final int socketTimeOut;
+
+    public BlockingRestTemplateCustomizer(@Value("${blocking.rest.templ.customizer.maxConn}") int maxConn,
+                                          @Value("${blocking.rest.templ.customizer.defMaxPerRoute}") int defMaxPerRoute,
+                                          @Value("${blocking.rest.templ.customizer.connTimeOut}") int connTimeOut,
+                                          @Value("${blocking.rest.templ.customizer.socketTimeOut}") int socketTimeOut) {
+        this.maxConn = maxConn;
+        this.defMaxPerRoute = defMaxPerRoute;
+        this.connTimeOut = connTimeOut;
+        this.socketTimeOut = socketTimeOut;
+    }
 
     public ClientHttpRequestFactory clientHttpRequestFactory(){
         PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
-        connectionManager.setMaxTotal(100);
-        connectionManager.setDefaultMaxPerRoute(20);
+        connectionManager.setMaxTotal(maxConn);
+        connectionManager.setDefaultMaxPerRoute(defMaxPerRoute);
 
         RequestConfig requestConfig = RequestConfig
                 .custom()
-                .setConnectionRequestTimeout(3000)
-                .setSocketTimeout(3000)
+                .setConnectionRequestTimeout(connTimeOut)
+                .setSocketTimeout(socketTimeOut)
                 .build();
 
         CloseableHttpClient httpClient = HttpClients
@@ -42,4 +60,36 @@ public class BlockingRestTemplateCustomizer implements RestTemplateCustomizer {
     public void customize(RestTemplate restTemplate) {
         restTemplate.setRequestFactory(this.clientHttpRequestFactory());
     }
+//
+//    public int getMaxConn() {
+//        return maxConn;
+//    }
+//
+//    public int getDefMaxPerRoute() {
+//        return defMaxPerRoute;
+//    }
+//
+//    public int getConnTimeOut() {
+//        return connTimeOut;
+//    }
+//
+//    public int getSocketTimeOut() {
+//        return socketTimeOut;
+//    }
+//
+//    public void setMaxConn(int maxConn) {
+//        this.maxConn = maxConn;
+//    }
+//
+//    public void setDefMaxPerRoute(int defMaxPerRoute) {
+//        this.defMaxPerRoute = defMaxPerRoute;
+//    }
+//
+//    public void setConnTimeOut(int connTimeOut) {
+//        this.connTimeOut = connTimeOut;
+//    }
+//
+//    public void setSocketTimeOut(int socketTimeOut) {
+//        this.socketTimeOut = socketTimeOut;
+//    }
 }
