@@ -61,9 +61,10 @@ class BreweryClientTest {
 
     @Test
     void testUpdateCustomer() {
-        // given
-        CustomerDto customerDto = CustomerDto.builder().name("New Customer").build();
+        //given
+        CustomerDto customerDto = CustomerDto.builder().name("Jim").build();
         client.updateCustomer(UUID.randomUUID(), customerDto);
+
     }
 
     @Test
